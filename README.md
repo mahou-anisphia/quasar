@@ -1,29 +1,43 @@
-# Create T3 App
+# Quasar 💫
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+> **The Heartbeat in the Void.**
 
-## What's next? How do I make an app with this?
+**Quasar** is a lightweight, push-based server monitoring solution designed to run indefinitely at zero cost. It solves the problem of monitoring private servers (without static IPs) using serverless frontends (like Vercel) that cannot maintain persistent connections.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+---
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## 💡 The Concept: "Accidental" Telemetry
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+Most monitoring systems use a **Pull Model** (The dashboard asks: _"Are you alive?"_).
+However, this requires the dashboard to be "always on" and the server to be publicly reachable.
 
-## Learn More
+**The Challenge:**
+I wanted to monitor my home Linux server using a **Vercel** dashboard.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- **Constraint 1:** Vercel functions "sleep" and cannot run background cron jobs to ping my server.
+- **Constraint 2:** My server didn't have a static IP or open ports.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+**The Solution (The Quasar Protocol):**
+I inverted the model. Quasar is a **Push-based** system (Heartbeat).
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+1.  **The Agent:** A simple Linux service runs on the server.
+2.  **The Pulse:** Every 3 minutes, it gathers vital stats (CPU, RAM, Docker container status) and `POST`s them to Vercel.
+3.  **The Observer:** The Vercel dashboard saves this to PostgreSQL.
+4.  **The Logic:** If the dashboard hasn't received a "pulse" in >5 minutes, it declares the server **Dead**.
 
-## How do I deploy this?
+_Essentially, I accidentally re-invented MQTT/IoT telemetry patterns to solve a budget constraint._
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+---
+
+## ⚙️ Architecture
+
+```mermaid
+graph LR
+    A[Linux Server] -- "POST /api/pulse (CPU/RAM)" --> B((Vercel API))
+    B -- "Store Heartbeat" --> C[(PostgreSQL)]
+    D[User Dashboard] -- "Query: Last Pulse Time?" --> C
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#fff,stroke:#333,stroke-width:2px
+    style D fill:#bbf,stroke:#333,stroke-width:2px
+```
