@@ -1,6 +1,6 @@
-# Quasar 💫
+_From the product series "Stellar Guide"_
 
-> **The Heartbeat in the Void.**
+# Quasar 💫
 
 **Quasar** is a lightweight, push-based server monitoring solution designed to run indefinitely at zero cost. It solves the problem of monitoring private servers (without static IPs) using serverless frontends (like Vercel) that cannot maintain persistent connections.
 
@@ -17,8 +17,8 @@ I wanted to monitor my home Linux server using a **Vercel** dashboard.
 - **Constraint 1:** Vercel functions "sleep" and cannot run background cron jobs to ping my server.
 - **Constraint 2:** My server didn't have a static IP or open ports.
 
-**The Solution (The Quasar Protocol):**
-I inverted the model. Quasar is a **Push-based** system (Heartbeat).
+**The Solution:**
+I inverted the model. Quasar is a **Push-based** system.
 
 1.  **The Agent:** A simple Linux service runs on the server.
 2.  **The Pulse:** Every 3 minutes, it gathers vital stats (CPU, RAM, Docker container status) and `POST`s them to Vercel.

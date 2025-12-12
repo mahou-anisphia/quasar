@@ -2,20 +2,52 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
-    output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Server {
+  // UUID used for both ID and Authentication Token
+  serverId            String      @id @default(uuid()) 
+  name                String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  
+  // STATIC HARDWARE SPECS
+  totalCPU            Int         // Core count
+  totalRam            BigInt      // Bytes
+  totalPhysicalRamBar Int         // Count of RAM sticks
+  totalDiskSpace      BigInt      // Bytes
+  totalDiskDrive      Int         // Count of drives
+  
+  telemetry           Telemetry[]
+}
 
-    @@index([name])
+model Telemetry {
+  telemetryId         Int      @id @default(autoincrement())
+  
+  serverId            String
+  server              Server   @relation(fields: [serverId], references: [serverId], onDelete: Cascade)
+  
+  createdAt           DateTime @default(now())
+  
+  // TIER ONE METRICS
+  // Storing as % is smart: avoids BigInt issues on frontend & keeps data normalized
+  usedDiskSpaceInPercentage Float 
+  attemptNo                 Int      // Fixed typo: attempNo -> attemptNo
+  
+  // TIER TWO METRICS
+  CPULoadAvg                Float
+  RAMLoadByPercentage       Float
+  SwapLoadByPercentage      Float?
+  
+  // TIER THREE METRICS
+  DiskIO                    Float?
+  NetworkThroughput         Int?     // Safe up to ~17Gbps if measuring Bytes/sec
+  NetworkLatency            Int?     // ms
 }
