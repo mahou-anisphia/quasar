@@ -1,4 +1,4 @@
-_From the product series "Stellar Guide"_
+_From the series "Stellar Guide"_
 
 # Quasar 💫
 
@@ -36,8 +36,18 @@ graph LR
     A[Linux Server] -- "POST /api/pulse (CPU/RAM)" --> B((Vercel API))
     B -- "Store Heartbeat" --> C[(PostgreSQL)]
     D[User Dashboard] -- "Query: Last Pulse Time?" --> C
-
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#fff,stroke:#333,stroke-width:2px
-    style D fill:#bbf,stroke:#333,stroke-width:2px
+    style A fill:#238636,stroke:#30363d,stroke-width:2px,color:#ffffff
+    style B fill:#1f6feb,stroke:#30363d,stroke-width:2px,color:#ffffff
+    style C fill:#8b949e,stroke:#30363d,stroke-width:2px,color:#ffffff
+    style D fill:#a371f7,stroke:#30363d,stroke-width:2px,color:#ffffff
 ```
+
+---
+
+## Final Words: The Origin Story
+
+I first built this in 2 hours back in 2024 when I got my first server but couldn't afford monitoring tools. It was crude—no dashboard, no concept, just a working hack.
+
+1 year later, after time in management, I realized I'd lost touch with this kind of hands-on problem-solving. Quasar is my return to first-principles engineering: taking something I once hacked together and rebuilding it with proper architecture, clear concepts, and production quality.
+
+The irony: the "ivory tower" made me rusty at the very skills that got me there.
