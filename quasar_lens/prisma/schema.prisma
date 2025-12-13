@@ -38,16 +38,20 @@ model Telemetry {
   
   // TIER ONE METRICS
   // Storing as % is smart: avoids BigInt issues on frontend & keeps data normalized
-  usedDiskSpaceInPercentage Float 
-  attemptNo                 Int      // Fixed typo: attempNo -> attemptNo
-  
+  usedDiskSpaceInPercentage Float
+  attemptNo                 Int      
+  uptime                    BigInt   // Seconds since boot - detect unexpected reboots
+
   // TIER TWO METRICS
   CPULoadAvg                Float
   RAMLoadByPercentage       Float
   SwapLoadByPercentage      Float?
-  
-  // TIER THREE METRICS
-  DiskIO                    Float?
-  NetworkThroughput         Int?     // Safe up to ~17Gbps if measuring Bytes/sec
-  NetworkLatency            Int?     // ms
+
+  // TIER THREE METRICS (MVP: Keep empty, expand post-launch)
+  // TODO Phase 2: Add DiskIO (bytes/sec read+write)
+  // TODO Phase 2: Add NetworkThroughput (bytes/sec)
+  // TODO Phase 2: Add NetworkLatency (ms to internet)
+  // TODO Phase 2: Add CPU per-core percentages (detect single-core bottlenecks)
+  // TODO Phase 2: Add Temperature monitoring (cpuTemperatureCelsius)
+  // TODO Phase 3: Add Docker container stats (count, running, unhealthy)
 }

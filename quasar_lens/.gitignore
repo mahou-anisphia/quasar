@@ -47,3 +47,7 @@ yarn-error.log*
 
 # Database files
 /generated
+
+# IDE files / devtools
+.claude
+.vscode
