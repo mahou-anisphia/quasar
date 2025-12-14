@@ -20,12 +20,29 @@ I wanted to monitor my home Linux server using a **Vercel** dashboard.
 **The Solution:**
 I inverted the model. Quasar is a **Push-based** system.
 
-1.  **The Agent:** A simple Linux service runs on the server.
-2.  **The Pulse:** Every 3 minutes, it gathers vital stats (CPU, RAM, Docker container status) and `POST`s them to Vercel.
-3.  **The Observer:** The Vercel dashboard saves this to PostgreSQL.
+1.  **Quasar Orbit (Agent):** A Go service runs on the server, collecting system metrics.
+2.  **The Pulse:** Every 3 minutes, it gathers vital stats (CPU, RAM, Disk, Swap) and `POST`s them to Vercel.
+3.  **Quasar Lens (Observer):** The Vercel dashboard receives and stores telemetry in PostgreSQL.
 4.  **The Logic:** If the dashboard hasn't received a "pulse" in >5 minutes, it declares the server **Dead**.
 
 _Essentially, I accidentally re-invented MQTT/IoT telemetry patterns to solve a budget constraint._
+
+---
+
+## 🏗️ Project Structure
+
+```
+quasar/
+├── quasar_orbit/      # Go monitoring agent (runs on server)
+│   ├── main.go        # CLI interface and output handling
+│   ├── collector.go   # Metrics collection using gopsutil
+│   └── go.mod
+│
+└── quasar_lens/       # Next.js dashboard (Vercel)
+    ├── prisma/        # Database schema
+    ├── app/           # Next.js app router
+    └── package.json
+```
 
 ---
 
@@ -33,9 +50,9 @@ _Essentially, I accidentally re-invented MQTT/IoT telemetry patterns to solve a 
 
 ```mermaid
 graph LR
-    A[Linux Server] -- "POST /api/pulse (CPU/RAM)" --> B((Vercel API))
-    B -- "Store Heartbeat" --> C[(PostgreSQL)]
-    D[User Dashboard] -- "Query: Last Pulse Time?" --> C
+    A[Quasar Orbit<br/>Go Agent] -- "POST /api/telemetry" --> B[Quasar Lens<br/>Vercel API]
+    B -- "Store Metrics" --> C[(PostgreSQL)]
+    D[Dashboard UI] -- "Query Metrics" --> C
     style A fill:#238636,stroke:#30363d,stroke-width:2px,color:#ffffff
     style B fill:#1f6feb,stroke:#30363d,stroke-width:2px,color:#ffffff
     style C fill:#8b949e,stroke:#30363d,stroke-width:2px,color:#ffffff
@@ -44,7 +61,84 @@ graph LR
 
 ---
 
-## Final Words: The Origin Story
+## 🚀 Quick Start
+
+### Quasar Orbit (Server Agent)
+
+```bash
+cd quasar_orbit
+
+# Run with auto-detection (prints to console)
+go run . --name "MyServer"
+
+# Send to Vercel endpoint
+go run . --name "MyServer" \
+  --output http \
+  --url "https://your-app.vercel.app/api/telemetry" \
+  --header "Authorization:Bearer YOUR_TOKEN"
+
+# With manual hardware specs (fallbacks)
+go run . --name "MyServer" \
+  --cpu 8 \
+  --ramsticks 2 \
+  --drives 3 \
+  --output http \
+  --url "https://your-app.vercel.app/api/telemetry"
+```
+
+### Quasar Lens (Dashboard)
+
+See [quasar_lens/README.md](quasar_lens/README.md) for setup instructions.
+
+---
+
+## 📊 Telemetry Metrics
+
+### Tier 1 (Critical)
+- `diskUsagePercentage` - Disk usage across all drives
+- `uptime` - Seconds since boot (detect reboots)
+- `attemptNo` - Heartbeat sequence number
+
+### Tier 2 (Core Monitoring)
+- `cpuUsagePercentage` - CPU utilization (1-second average)
+- `ramUsagePercentage` - RAM usage percentage
+- `swapUsedBytes` - Swap memory used in bytes
+
+### Tier 3 (Future)
+- Disk I/O metrics
+- Network throughput & latency
+- Per-core CPU usage
+- Temperature monitoring
+- Docker container stats
+
+---
+
+## 🛠️ Technology Stack
+
+**Quasar Orbit:**
+- Go 1.25
+- [gopsutil/v4](https://github.com/shirou/gopsutil) - Cross-platform system metrics
+- Native HTTP client
+
+**Quasar Lens:**
+- Next.js 15 (App Router)
+- Prisma ORM
+- PostgreSQL (via Vercel)
+- TypeScript
+
+---
+
+## 🎯 Design Principles
+
+1. **Zero Cost**: Runs on free tiers (Vercel, free PostgreSQL)
+2. **Cross-Platform Dev**: Develop on Windows, deploy on Linux (gopsutil abstracts OS differences)
+3. **Push-Based**: Server initiates contact (no firewall/NAT issues)
+4. **Resilient**: CLI fallbacks if syscalls fail, graceful error handling
+5. **Minimal Dependencies**: Single binary agent, serverless dashboard
+
+---
+
+## 📝 Final Words: The Origin Story
 
 I first built this in 2 hours back in 2024 when I got my first server but couldn't afford monitoring tools. It was crude—no dashboard, no concept, just a working hack.
 
