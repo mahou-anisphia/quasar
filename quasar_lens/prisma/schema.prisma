@@ -38,14 +38,14 @@ model Telemetry {
   
   // TIER ONE METRICS
   // Storing as % is smart: avoids BigInt issues on frontend & keeps data normalized
-  usedDiskSpaceInPercentage Float
-  attemptNo                 Int      
+  diskUsagePercentage       Float
+  attemptNo                 Int
   uptime                    BigInt   // Seconds since boot - detect unexpected reboots
 
   // TIER TWO METRICS
-  CPULoadAvg                Float
-  RAMLoadByPercentage       Float
-  SwapLoadByPercentage      Float?
+  cpuUsagePercentage        Float
+  ramUsagePercentage        Float
+  swapUsedBytes             BigInt
 
   // TIER THREE METRICS (MVP: Keep empty, expand post-launch)
   // TODO Phase 2: Add DiskIO (bytes/sec read+write)
