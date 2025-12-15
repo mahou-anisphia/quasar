@@ -12,9 +12,9 @@ Most monitoring systems use a **Pull Model** (The dashboard asks: _"Are you aliv
 However, this requires the dashboard to be "always on" and the server to be publicly reachable.
 
 **The Challenge:**
-I wanted to monitor my home Linux server using a **Vercel** dashboard.
+I wanted to monitor my home Linux server using a **Vercel** dashboard with zero cost, has high availability, and past data visualization to help me understand the crash.
 
-- **Constraint 1:** Vercel functions "sleep" and cannot run background cron jobs to ping my server.
+- **Constraint 1:** Vercel functions "sleep" and cannot run background cron jobs to ping my server (Vercel does have CRON, but it can't maintain a state, run Tailscale to actually ping my server).
 - **Constraint 2:** My server didn't have a static IP or open ports.
 
 **The Solution:**
@@ -95,16 +95,19 @@ See [quasar_lens/README.md](quasar_lens/README.md) for setup instructions.
 ## 📊 Telemetry Metrics
 
 ### Tier 1 (Critical)
+
 - `diskUsagePercentage` - Disk usage across all drives
 - `uptime` - Seconds since boot (detect reboots)
 - `attemptNo` - Heartbeat sequence number
 
 ### Tier 2 (Core Monitoring)
+
 - `cpuUsagePercentage` - CPU utilization (1-second average)
 - `ramUsagePercentage` - RAM usage percentage
 - `swapUsedBytes` - Swap memory used in bytes
 
 ### Tier 3 (Future)
+
 - Disk I/O metrics
 - Network throughput & latency
 - Per-core CPU usage
@@ -116,11 +119,13 @@ See [quasar_lens/README.md](quasar_lens/README.md) for setup instructions.
 ## 🛠️ Technology Stack
 
 **Quasar Orbit:**
+
 - Go 1.25
 - [gopsutil/v4](https://github.com/shirou/gopsutil) - Cross-platform system metrics
 - Native HTTP client
 
 **Quasar Lens:**
+
 - Next.js 15 (App Router)
 - Prisma ORM
 - PostgreSQL (via Vercel)
