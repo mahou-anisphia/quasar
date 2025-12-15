@@ -1,22 +1,20 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
+
+	"quasar_orbit/service"
 )
 
 type OutputConfig struct {
 	OutputType string
-	ReqURL     string
-	ReqHeader  string
+	Endpoints  []service.HTTPEndpoint
 }
 
-func parseFlags() (*StaticHardware, *OutputConfig, error) {
+func parseFlags() (*service.StaticHardware, *OutputConfig, error) {
 	serverName := flag.String("name", "", "Server name (required)")
 	totalCPU := flag.Int("cpu", 1, "Total CPU cores (fallback if auto-detect fails)")
 	totalRAM := flag.Int64("ram", 0, "Total RAM in bytes (fallback if auto-detect fails)")
@@ -25,8 +23,26 @@ func parseFlags() (*StaticHardware, *OutputConfig, error) {
 	totalDiskDrive := flag.Int("drives", 1, "Number of disk drives (default: 1)")
 
 	outputType := flag.String("output", "print", "Output type: 'print' or 'http' (default: print)")
-	reqURL := flag.String("url", "", "HTTP endpoint URL (required if output=http)")
-	reqHeader := flag.String("header", "", "HTTP headers in format 'Key1:Value1,Key2:Value2'")
+
+	// Support for multiple HTTP endpoints
+	url1 := flag.String("url1", "", "HTTP endpoint URL 1 (required if output=http)")
+	header1 := flag.String("header1", "", "HTTP headers for URL 1 in format 'Key1:Value1,Key2:Value2'")
+
+	url2 := flag.String("url2", "", "HTTP endpoint URL 2 (optional)")
+	header2 := flag.String("header2", "", "HTTP headers for URL 2 in format 'Key1:Value1,Key2:Value2'")
+
+	url3 := flag.String("url3", "", "HTTP endpoint URL 3 (optional)")
+	header3 := flag.String("header3", "", "HTTP headers for URL 3 in format 'Key1:Value1,Key2:Value2'")
+
+	url4 := flag.String("url4", "", "HTTP endpoint URL 4 (optional)")
+	header4 := flag.String("header4", "", "HTTP headers for URL 4 in format 'Key1:Value1,Key2:Value2'")
+
+	url5 := flag.String("url5", "", "HTTP endpoint URL 5 (optional)")
+	header5 := flag.String("header5", "", "HTTP headers for URL 5 in format 'Key1:Value1,Key2:Value2'")
+
+	// Legacy support for single endpoint
+	reqURL := flag.String("url", "", "HTTP endpoint URL (legacy, use --url1 instead)")
+	reqHeader := flag.String("header", "", "HTTP headers (legacy, use --header1 instead)")
 
 	flag.Parse()
 
@@ -42,13 +58,34 @@ func parseFlags() (*StaticHardware, *OutputConfig, error) {
 		outputTypeLower = "print"
 	}
 
-	// Validate URL if output type is HTTP
-	if outputTypeLower == "http" && *reqURL == "" {
-		return nil, nil, fmt.Errorf("--url is required when output type is 'http'")
+	// Collect all HTTP endpoints
+	var endpoints []service.HTTPEndpoint
+
+	// Legacy support: if --url is used, treat it as url1
+	if *reqURL != "" {
+		endpoints = append(endpoints, service.HTTPEndpoint{URL: *reqURL, Header: *reqHeader})
+	} else {
+		// Collect all provided URLs
+		urls := []string{*url1, *url2, *url3, *url4, *url5}
+		headers := []string{*header1, *header2, *header3, *header4, *header5}
+
+		for i := 0; i < len(urls); i++ {
+			if urls[i] != "" {
+				endpoints = append(endpoints, service.HTTPEndpoint{
+					URL:    urls[i],
+					Header: headers[i],
+				})
+			}
+		}
+	}
+
+	// Validate at least one URL is provided if output type is HTTP
+	if outputTypeLower == "http" && len(endpoints) == 0 {
+		return nil, nil, fmt.Errorf("at least one URL is required when output type is 'http' (use --url1, --url2, etc.)")
 	}
 
 	// Return fallback values - these will be used only if detection fails
-	fallback := &StaticHardware{
+	fallback := &service.StaticHardware{
 		ServerName:          *serverName,
 		TotalCPU:            *totalCPU,
 		TotalRAM:            *totalRAM,
@@ -59,78 +96,13 @@ func parseFlags() (*StaticHardware, *OutputConfig, error) {
 
 	outputConfig := &OutputConfig{
 		OutputType: outputTypeLower,
-		ReqURL:     *reqURL,
-		ReqHeader:  *reqHeader,
+		Endpoints:  endpoints,
 	}
 
 	return fallback, outputConfig, nil
 }
 
-func sendHTTPRequest(hw *StaticHardware, tel *Telemetry, config *OutputConfig) error {
-	// Prepare payload
-	payload := map[string]interface{}{
-		"server": map[string]interface{}{
-			"serverName":          hw.ServerName,
-			"totalCpu":            hw.TotalCPU,
-			"totalRam":            hw.TotalRAM,
-			"totalPhysicalRamBar": hw.TotalPhysicalRAMBar,
-			"totalDiskSpace":      hw.TotalDiskSpace,
-			"totalDiskDrive":      hw.TotalDiskDrive,
-		},
-		"telemetry": map[string]interface{}{
-			"diskUsagePercentage": tel.DiskUsagePercentage,
-			"uptime":              tel.Uptime,
-			"cpuUsagePercentage":  tel.CpuUsagePercentage,
-			"ramUsagePercentage":  tel.RamUsagePercentage,
-			"swapUsedBytes":       tel.SwapUsedBytes,
-		},
-	}
-
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %v", err)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", config.ReqURL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("failed to create HTTP request: %v", err)
-	}
-
-	// Set default content type
-	req.Header.Set("Content-Type", "application/json")
-
-	// Parse and set custom headers
-	if config.ReqHeader != "" {
-		headers := strings.Split(config.ReqHeader, ",")
-		for _, header := range headers {
-			parts := strings.SplitN(strings.TrimSpace(header), ":", 2)
-			if len(parts) == 2 {
-				key := strings.TrimSpace(parts[0])
-				value := strings.TrimSpace(parts[1])
-				req.Header.Set(key, value)
-			}
-		}
-	}
-
-	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("HTTP request failed: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Check response status
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("HTTP request failed with status: %d %s", resp.StatusCode, resp.Status)
-	}
-
-	fmt.Printf("✅ Data sent successfully to %s (Status: %d)\n", config.ReqURL, resp.StatusCode)
-	return nil
-}
-
-func printOutput(hw *StaticHardware, tel *Telemetry) {
+func printOutput(hw *service.StaticHardware, tel *service.Telemetry) {
 	// Display static hardware configuration
 	fmt.Println("--- STATIC HARDWARE CONFIGURATION ---")
 	fmt.Printf("Server Name: %s\n", hw.ServerName)
@@ -164,14 +136,14 @@ func main() {
 	}
 
 	// Detect hardware (with fallback safeguards)
-	hw, err := DetectHardware(fallback)
+	hw, err := service.DetectHardware(fallback)
 	if err != nil {
 		log.Fatalf("Failed to detect hardware: %v\n", err)
 	}
 
 	// Collect telemetry
 	fmt.Println("--- COLLECTING TELEMETRY ---")
-	tel, err := CollectTelemetry(hw)
+	tel, err := service.CollectTelemetry(hw)
 	if err != nil {
 		log.Fatalf("Failed to collect telemetry: %v\n", err)
 	}
@@ -180,10 +152,7 @@ func main() {
 
 	// Output based on configuration
 	if outputConfig.OutputType == "http" {
-		err = sendHTTPRequest(hw, tel, outputConfig)
-		if err != nil {
-			log.Fatalf("Failed to send HTTP request: %v\n", err)
-		}
+		service.SendToAllEndpoints(hw, tel, outputConfig.Endpoints)
 	} else {
 		printOutput(hw, tel)
 	}
