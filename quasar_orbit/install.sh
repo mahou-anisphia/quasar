@@ -187,24 +187,27 @@ chmod +x /usr/local/bin/quasar_orbit
 echo -e "${GREEN}✓ Binary installed${NC}"
 
 # Build command arguments
-CMD_ARGS="--name \"$SERVER_NAME\" --output http --url1 \"$ENDPOINT_URL\""
-[ -n "$HTTP_HEADERS" ] && CMD_ARGS="$CMD_ARGS --header1 \"$HTTP_HEADERS\""
+CMD_ARGS="--name '$SERVER_NAME' --output http --url1 '$ENDPOINT_URL'"
+[ -n "$HTTP_HEADERS" ] && CMD_ARGS="$CMD_ARGS --header1 '$HTTP_HEADERS'"
 [ -n "$TOTAL_CPU" ] && CMD_ARGS="$CMD_ARGS --cpu $TOTAL_CPU"
 [ -n "$TOTAL_RAM" ] && CMD_ARGS="$CMD_ARGS --ram $TOTAL_RAM"
 [ -n "$RAM_STICKS" ] && CMD_ARGS="$CMD_ARGS --ramsticks $RAM_STICKS"
 [ -n "$TOTAL_DISK" ] && CMD_ARGS="$CMD_ARGS --disk $TOTAL_DISK"
-[ -n "$DISK_DRIVES" ] && CMD_ARGS="$CMD_DRIVES --drives $DISK_DRIVES"
+[ -n "$DISK_DRIVES" ] && CMD_ARGS="$CMD_ARGS --drives $DISK_DRIVES"
 
 # Create systemd service file
 echo "Creating systemd service..."
-cat > /etc/systemd/system/quasar-orbit.service << EOF
+echo "Command: /usr/local/bin/quasar_orbit ${CMD_ARGS}"
+echo ""
+
+cat > /etc/systemd/system/quasar-orbit.service <<EOF
 [Unit]
 Description=Quasar Orbit - Server Monitoring Agent
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit $CMD_ARGS; sleep $REQUEST_INTERVAL; done'
+ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; sleep ${REQUEST_INTERVAL}; done'
 Restart=always
 RestartSec=10
 User=root
