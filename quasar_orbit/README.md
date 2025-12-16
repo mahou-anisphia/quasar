@@ -35,25 +35,78 @@
 
 ---
 
-## 🚀 Installation
+## 🚀 Quick Start
 
-### Build from Source
+### Automated Installation (Linux)
+
+The easiest way to install Quasar Orbit is using the automated installer:
+
+```bash
+# Download the installer
+curl -O https://raw.githubusercontent.com/mahou-anisphia/quasar/main/quasar_orbit/install.sh
+
+# Make it executable
+chmod +x install.sh
+
+# Run the installer (will auto-download binary from GitHub)
+sudo ./install.sh
+```
+
+The installer will:
+- Auto-detect your system architecture (x86_64 or i386)
+- Download the appropriate binary from GitHub releases
+- Prompt for configuration (server name, endpoint, interval, etc.)
+- Create and start a systemd service
+- Configure automatic startup on boot
+
+### Manual Installation
+
+#### Option 1: Download Pre-built Binary
+
+Download the appropriate binary for your system from [GitHub Releases](https://github.com/mahou-anisphia/quasar/releases):
+
+- **Linux x86_64**: `quasar_orbit_linux_amd64.zip`
+- **Linux x86 (32-bit)**: `quasar_orbit_linux_386.zip`
+- **Windows x86_64**: `quasar_orbit_windows_amd64.zip`
+- **Windows x86 (32-bit)**: `quasar_orbit_windows_386.zip`
+
+```bash
+# Extract and make executable
+unzip quasar_orbit_linux_amd64.zip
+chmod +x quasar_orbit_linux_amd64
+
+# Test it
+./quasar_orbit_linux_amd64 --name "MyServer"
+```
+
+#### Option 2: Build from Source
 
 ```bash
 cd quasar_orbit
 
 # Build for current platform
-go build -o quasar-orbit
+go build -o quasar_orbit
 
-# Cross-compile for Linux (from Windows/Mac)
-GOOS=linux GOARCH=amd64 go build -o quasar-orbit-linux
+# Or use the build script (Windows)
+./build.ps1
 
-# Make executable (Linux)
-chmod +x quasar-orbit-linux
+# Binaries will be in the build/ directory
 ```
 
-### Download Binary (Coming Soon)
-Pre-built binaries will be available in releases.
+### Uninstallation
+
+To remove Quasar Orbit:
+
+```bash
+# Download the uninstaller
+curl -O https://raw.githubusercontent.com/mahou-anisphia/quasar/main/quasar_orbit/uninstall.sh
+
+# Make it executable
+chmod +x uninstall.sh
+
+# Run the uninstaller
+sudo ./uninstall.sh
+```
 
 ---
 
@@ -184,26 +237,28 @@ When using `--output http`, the agent sends this JSON structure:
 
 ## 🔄 Running as a Service (Linux)
 
-### Systemd Service
+### Automated Setup
 
-Create `/etc/systemd/system/quasar-orbit.service`:
+The easiest way is to use the [installation script](#automated-installation-linux) which automatically:
+- Creates a systemd service
+- Configures the reporting interval
+- Enables auto-start on boot
+
+### Manual Systemd Service Setup
+
+If you installed manually, create `/etc/systemd/system/quasar-orbit.service`:
 
 ```ini
 [Unit]
-Description=Quasar Orbit Monitoring Agent
+Description=Quasar Orbit - Server Monitoring Agent
 After=network.target
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/opt/quasar
-ExecStart=/opt/quasar/quasar-orbit \
-  --name "MyServer" \
-  --output http \
-  --url "https://your-app.vercel.app/api/telemetry" \
-  --header "Authorization:Bearer YOUR_TOKEN"
+ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit --name "MyServer" --output http --url1 "https://your-app.vercel.app/api/telemetry" --header1 "Authorization:Bearer TOKEN"; sleep 60; done'
 Restart=always
-RestartSec=60
+RestartSec=10
+User=root
 
 [Install]
 WantedBy=multi-user.target
@@ -212,26 +267,30 @@ WantedBy=multi-user.target
 **Enable and start:**
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable quasar-orbit
-sudo systemctl start quasar-orbit
+sudo systemctl enable quasar-orbit.service
+sudo systemctl start quasar-orbit.service
 
 # Check status
-sudo systemctl status quasar-orbit
+sudo systemctl status quasar-orbit.service
 
 # View logs
-sudo journalctl -u quasar-orbit -f
+sudo journalctl -u quasar-orbit.service -f
 ```
 
-### Cron Job (Alternative)
-
-Run every 3 minutes:
+### Service Management
 
 ```bash
-# Edit crontab
-crontab -e
+# Stop service
+sudo systemctl stop quasar-orbit.service
 
-# Add this line
-*/3 * * * * /opt/quasar/quasar-orbit --name "MyServer" --output http --url "https://your-app.vercel.app/api/telemetry" --header "Authorization:Bearer TOKEN" >> /var/log/quasar-orbit.log 2>&1
+# Restart service
+sudo systemctl restart quasar-orbit.service
+
+# Disable auto-start
+sudo systemctl disable quasar-orbit.service
+
+# View live logs
+sudo journalctl -u quasar-orbit.service -f
 ```
 
 ---

@@ -65,26 +65,61 @@ graph LR
 
 ### Quasar Orbit (Server Agent)
 
+**Automated Installation (Linux):**
+
+Install and configure as a systemd service in 3 commands:
+
+```bash
+# Download installer (auto-downloads binary from GitHub)
+curl -O https://raw.githubusercontent.com/mahou-anisphia/quasar/main/quasar_orbit/install.sh
+chmod +x install.sh
+
+# Run installer - prompts for server name, endpoint, interval, etc.
+sudo ./install.sh
+```
+
+The installer will:
+- Auto-detect your architecture (x86_64 or i386)
+- Download the appropriate binary from GitHub releases
+- Configure systemd service with your settings
+- Start monitoring automatically
+
+**Manual Installation:**
+
+Download pre-built binaries from [GitHub Releases](https://github.com/mahou-anisphia/quasar/releases) or build from source:
+
 ```bash
 cd quasar_orbit
 
-# Run with auto-detection (prints to console)
-go run . --name "MyServer"
+# Build using the build script (outputs to build/ directory)
+./build.ps1
 
+# Or build manually for your platform
+go build -o quasar_orbit
+
+# Test it
+./quasar_orbit --name "MyServer"
+```
+
+**Usage Examples:**
+
+```bash
 # Send to Vercel endpoint
-go run . --name "MyServer" \
+./quasar_orbit --name "MyServer" \
   --output http \
-  --url "https://your-app.vercel.app/api/telemetry" \
-  --header "Authorization:Bearer YOUR_TOKEN"
+  --url1 "https://your-app.vercel.app/api/telemetry" \
+  --header1 "Authorization:Bearer YOUR_TOKEN"
 
 # With manual hardware specs (fallbacks)
-go run . --name "MyServer" \
+./quasar_orbit --name "MyServer" \
   --cpu 8 \
   --ramsticks 2 \
   --drives 3 \
   --output http \
-  --url "https://your-app.vercel.app/api/telemetry"
+  --url1 "https://your-app.vercel.app/api/telemetry"
 ```
+
+See [quasar_orbit/README.md](quasar_orbit/README.md) for detailed documentation.
 
 ### Quasar Lens (Dashboard)
 
@@ -136,10 +171,11 @@ See [quasar_lens/README.md](quasar_lens/README.md) for setup instructions.
 ## 🎯 Design Principles
 
 1. **Zero Cost**: Runs on free tiers (Vercel, free PostgreSQL)
-2. **Cross-Platform Dev**: Develop on Windows, deploy on Linux (gopsutil abstracts OS differences)
+2. **Cross-Platform**: Develop on Windows, deploy on Linux (gopsutil abstracts OS differences)
 3. **Push-Based**: Server initiates contact (no firewall/NAT issues)
 4. **Resilient**: CLI fallbacks if syscalls fail, graceful error handling
 5. **Minimal Dependencies**: Single binary agent, serverless dashboard
+6. **Easy Deployment**: Automated installer with GitHub releases - from download to monitoring in under 2 minutes
 
 ---
 
