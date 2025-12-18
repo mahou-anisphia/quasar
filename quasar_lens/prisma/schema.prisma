@@ -14,7 +14,7 @@ datasource db {
 model Server {
   // UUID used for both ID and Authentication Token
   serverId            String      @id @default(uuid()) 
-  name                String
+  name                String      @unique
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   
