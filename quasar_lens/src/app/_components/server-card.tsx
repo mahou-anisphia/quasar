@@ -40,22 +40,33 @@ export function ServerCard({ server }: ServerCardProps) {
     >
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div>
-            <CardTitle
-              className={cn("text-xl", isOffline && "text-destructive")}
-            >
+          <div className="flex-1">
+            <CardTitle className="text-xl">
               {server.name}
-              {isOffline && (
-                <span className="text-destructive ml-2 text-sm font-normal">
-                  (Offline)
-                </span>
-              )}
             </CardTitle>
             <CardDescription className="mt-1">
               {server.totalCPU} cores • {formatBytes(server.totalRam)} RAM
             </CardDescription>
           </div>
-          <Server className={cn("h-5 w-5", isOffline && "text-destructive")} />
+          <div className="flex flex-col items-end gap-2">
+            <Server className={cn("h-5 w-5", isOffline && "text-destructive")} />
+            <div
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                isOffline
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-green-500/10 text-green-600 dark:text-green-500"
+              )}
+            >
+              <div
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  isOffline ? "bg-destructive" : "bg-green-600 dark:bg-green-500"
+                )}
+              />
+              <span>{isOffline ? "Offline" : "Online"}</span>
+            </div>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
