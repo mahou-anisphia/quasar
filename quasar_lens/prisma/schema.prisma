@@ -26,6 +26,7 @@ model Server {
   totalDiskDrive      Int         // Count of drives
   
   telemetry           Telemetry[]
+  crashes             Crashes[]
 }
 
 model Telemetry {
@@ -54,4 +55,12 @@ model Telemetry {
   // TODO Phase 2: Add CPU per-core percentages (detect single-core bottlenecks)
   // TODO Phase 2: Add Temperature monitoring (cpuTemperatureCelsius)
   // TODO Phase 3: Add Docker container stats (count, running, unhealthy)
+}
+
+model Crashes {
+  crashId             String    @id @default(uuid()) 
+  serverId            String
+  server              Server    @relation(fields: [serverId], references: [serverId], onDelete: Cascade)
+  crashTime           DateTime
+  duration            BigInt
 }
