@@ -36,3 +36,17 @@ export function isServerOffline(lastSeenTimestamp: Date): boolean {
 
   return diffMinutes >= 5;
 }
+export function formatUptime(seconds: bigint): string {
+  const totalSeconds = Number(seconds);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+}

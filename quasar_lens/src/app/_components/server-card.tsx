@@ -1,4 +1,5 @@
 import { Server } from "lucide-react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -30,14 +31,15 @@ export function ServerCard({ server }: ServerCardProps) {
     isServerOffline(new Date(server.latestTelemetry.createdAt));
 
   return (
-    <Card
-      className={cn(
-        "transition-all",
-        isOffline
-          ? "border-destructive/50 bg-destructive/5 hover:border-destructive"
-          : "hover:border-primary",
-      )}
-    >
+    <Link href={`/server/${server.serverId}`}>
+      <Card
+        className={cn(
+          "transition-all cursor-pointer",
+          isOffline
+            ? "border-destructive/50 bg-destructive/5 hover:border-destructive"
+            : "hover:border-primary hover:shadow-md",
+        )}
+      >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -69,9 +71,9 @@ export function ServerCard({ server }: ServerCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-50">
         {isOffline ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="flex h-full flex-col items-center justify-center text-center">
             <div className="bg-destructive/10 mb-3 rounded-full p-3">
               <Server className="text-destructive h-8 w-8" />
             </div>
@@ -173,5 +175,6 @@ export function ServerCard({ server }: ServerCardProps) {
         )}
       </CardContent>
     </Card>
+    </Link>
   );
 }
