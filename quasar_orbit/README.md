@@ -204,27 +204,25 @@ Use when auto-detection fails or you want to override values:
 
 ## 🔧 CLI Flags
 
-| Flag                                         | Type   | Required                                    | Default     | Description                                                   |
-| -------------------------------------------- | ------ | ------------------------------------------- | ----------- | ------------------------------------------------------------- |
-| `--name`                                     | string | ✅ Yes                                      | -           | Server name (identifier)                                      |
-| `--output`                                   | string | ❌ No                                       | `print`     | Output type: `print` or `http`                                |
-| `--url1` to `--url5`                         | string | ⚠️ At least one required if `--output=http` | -           | HTTP endpoint URLs (up to 5)                                  |
-| `--header1` to `--header5`                   | string | ❌ No                                       | -           | HTTP headers for each URL (`Key1:Value1,Key2:Value2`)         |
-| `--random-interval1` to `--random-interval5` | bool   | ❌ No                                       | `false`     | Enable ±20% random interval for each endpoint                 |
-| `--calc-sleep`                               | int    | ❌ No                                       | `0`         | Calculate random sleep interval for given base (utility mode) |
-| `--cpu`                                      | int    | ❌ No                                       | `1`         | Total CPU cores (fallback)                                    |
-| `--ram`                                      | int64  | ❌ No                                       | Auto-detect | Total RAM in bytes (fallback)                                 |
-| `--ramsticks`                                | int    | ❌ No                                       | `1`         | Number of physical RAM sticks                                 |
-| `--disk`                                     | int64  | ❌ No                                       | Auto-detect | Total disk space in bytes (fallback)                          |
-| `--drives`                                   | int    | ❌ No                                       | `1`         | Number of disk drives                                         |
+| Flag                 | Type   | Required                                    | Default     | Description                                                   |
+| -------------------- | ------ | ------------------------------------------- | ----------- | ------------------------------------------------------------- |
+| `--name`             | string | ✅ Yes                                      | -           | Server name (identifier)                                      |
+| `--output`           | string | ❌ No                                       | `print`     | Output type: `print` or `http`                                |
+| `--url1` to `--url5` | string | ⚠️ At least one required if `--output=http` | -           | HTTP endpoint URLs (up to 5)                                  |
+| `--header1` to `--header5` | string | ❌ No                                 | -           | HTTP headers for each URL (`Key1:Value1,Key2:Value2`)         |
+| `--calc-sleep`       | int    | ❌ No                                       | `0`         | Calculate random sleep interval for given base (utility mode) |
+| `--cpu`              | int    | ❌ No                                       | `1`         | Total CPU cores (fallback)                                    |
+| `--ram`              | int64  | ❌ No                                       | Auto-detect | Total RAM in bytes (fallback)                                 |
+| `--ramsticks`        | int    | ❌ No                                       | `1`         | Number of physical RAM sticks                                 |
+| `--disk`             | int64  | ❌ No                                       | Auto-detect | Total disk space in bytes (fallback)                          |
+| `--drives`           | int    | ❌ No                                       | `1`         | Number of disk drives                                         |
 
 ### Legacy Flags (Deprecated)
 
-| Flag                | Type   | Description                      |
-| ------------------- | ------ | -------------------------------- |
-| `--url`             | string | Use `--url1` instead             |
-| `--header`          | string | Use `--header1` instead          |
-| `--random-interval` | bool   | Use `--random-interval1` instead |
+| Flag       | Type   | Description              |
+| ---------- | ------ | ------------------------ |
+| `--url`    | string | Use `--url1` instead     |
+| `--header` | string | Use `--header1` instead  |
 
 ---
 

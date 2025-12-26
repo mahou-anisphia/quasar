@@ -57,17 +57,9 @@ func parseFlags() (*service.StaticHardware, *OutputConfig, error) {
 	url5 := flag.String("url5", "", "HTTP endpoint URL 5 (optional)")
 	header5 := flag.String("header5", "", "HTTP headers for URL 5 in format 'Key1:Value1,Key2:Value2'")
 
-	// Random interval flags for each endpoint
-	randomInterval1 := flag.Bool("random-interval1", false, "Enable random interval (±20%) for URL 1")
-	randomInterval2 := flag.Bool("random-interval2", false, "Enable random interval (±20%) for URL 2")
-	randomInterval3 := flag.Bool("random-interval3", false, "Enable random interval (±20%) for URL 3")
-	randomInterval4 := flag.Bool("random-interval4", false, "Enable random interval (±20%) for URL 4")
-	randomInterval5 := flag.Bool("random-interval5", false, "Enable random interval (±20%) for URL 5")
-
 	// Legacy support for single endpoint
 	reqURL := flag.String("url", "", "HTTP endpoint URL (legacy, use --url1 instead)")
 	reqHeader := flag.String("header", "", "HTTP headers (legacy, use --header1 instead)")
-	randomInterval := flag.Bool("random-interval", false, "Enable random interval (±20%) for legacy URL (use --random-interval1 instead)")
 
 	flag.Parse()
 
@@ -96,22 +88,19 @@ func parseFlags() (*service.StaticHardware, *OutputConfig, error) {
 	// Legacy support: if --url is used, treat it as url1
 	if *reqURL != "" {
 		endpoints = append(endpoints, service.HTTPEndpoint{
-			URL:            *reqURL,
-			Header:         *reqHeader,
-			RandomInterval: *randomInterval,
+			URL:    *reqURL,
+			Header: *reqHeader,
 		})
 	} else {
 		// Collect all provided URLs
 		urls := []string{*url1, *url2, *url3, *url4, *url5}
 		headers := []string{*header1, *header2, *header3, *header4, *header5}
-		randomIntervals := []bool{*randomInterval1, *randomInterval2, *randomInterval3, *randomInterval4, *randomInterval5}
 
 		for i := 0; i < len(urls); i++ {
 			if urls[i] != "" {
 				endpoints = append(endpoints, service.HTTPEndpoint{
-					URL:            urls[i],
-					Header:         headers[i],
-					RandomInterval: randomIntervals[i],
+					URL:    urls[i],
+					Header: headers[i],
 				})
 			}
 		}

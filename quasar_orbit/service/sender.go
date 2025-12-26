@@ -10,9 +10,8 @@ import (
 )
 
 type HTTPEndpoint struct {
-	URL            string
-	Header         string
-	RandomInterval bool
+	URL    string
+	Header string
 }
 
 func SendHTTPRequest(hw *StaticHardware, tel *Telemetry, endpoint HTTPEndpoint) error {

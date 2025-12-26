@@ -196,10 +196,9 @@ cp "$BINARY_PATH" /usr/local/bin/quasar_orbit
 chmod +x /usr/local/bin/quasar_orbit
 echo -e "${GREEN}✓ Binary installed${NC}"
 
-# Build command arguments
-CMD_ARGS="--name '$SERVER_NAME' --output http --url1 '$ENDPOINT_URL'"
-[ -n "$HTTP_HEADERS" ] && CMD_ARGS="$CMD_ARGS --header1 '$HTTP_HEADERS'"
-[ "$USE_RANDOM_INTERVAL" = "yes" ] && CMD_ARGS="$CMD_ARGS --random-interval1"
+# Build command arguments without outer quotes (will be quoted in ExecStart)
+CMD_ARGS="--name \\\"$SERVER_NAME\\\" --output http --url1 \\\"$ENDPOINT_URL\\\""
+[ -n "$HTTP_HEADERS" ] && CMD_ARGS="$CMD_ARGS --header1 \\\"$HTTP_HEADERS\\\""
 [ -n "$TOTAL_CPU" ] && CMD_ARGS="$CMD_ARGS --cpu $TOTAL_CPU"
 [ -n "$TOTAL_RAM" ] && CMD_ARGS="$CMD_ARGS --ram $TOTAL_RAM"
 [ -n "$RAM_STICKS" ] && CMD_ARGS="$CMD_ARGS --ramsticks $RAM_STICKS"
@@ -220,7 +219,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; SLEEP_INTERVAL=\$(/usr/local/bin/quasar_orbit --calc-sleep ${REQUEST_INTERVAL}); sleep \$SLEEP_INTERVAL; done'
+ExecStart=/bin/bash -c "while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; SLEEP_INTERVAL=\$(/usr/local/bin/quasar_orbit --calc-sleep ${REQUEST_INTERVAL}); sleep \$SLEEP_INTERVAL; done"
 Restart=always
 RestartSec=10
 User=root
@@ -236,7 +235,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; sleep ${REQUEST_INTERVAL}; done'
+ExecStart=/bin/bash -c "while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; sleep ${REQUEST_INTERVAL}; done"
 Restart=always
 RestartSec=10
 User=root
