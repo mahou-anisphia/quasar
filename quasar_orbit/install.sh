@@ -211,13 +211,8 @@ echo "Creating systemd service..."
 echo "Command: /usr/local/bin/quasar_orbit ${CMD_ARGS}"
 echo ""
 
-# Generate appropriate ExecStart command based on random interval setting
+# Create systemd service file with proper escaping
 if [ "$USE_RANDOM_INTERVAL" = "yes" ]; then
-    EXEC_START_CMD='while true; do /usr/local/bin/quasar_orbit '"${CMD_ARGS}"'; SLEEP_INTERVAL=$(/usr/local/bin/quasar_orbit --calc-sleep '"${REQUEST_INTERVAL}"'); sleep $SLEEP_INTERVAL; done'
-else
-    EXEC_START_CMD='while true; do /usr/local/bin/quasar_orbit '"${CMD_ARGS}"'; sleep '"${REQUEST_INTERVAL}"'; done'
-fi
-
 cat > /etc/systemd/system/quasar-orbit.service <<EOF
 [Unit]
 Description=Quasar Orbit - Server Monitoring Agent
@@ -225,7 +220,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c '${EXEC_START_CMD}'
+ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; SLEEP_INTERVAL=\$(/usr/local/bin/quasar_orbit --calc-sleep ${REQUEST_INTERVAL}); sleep \$SLEEP_INTERVAL; done'
 Restart=always
 RestartSec=10
 User=root
@@ -233,6 +228,23 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
+else
+cat > /etc/systemd/system/quasar-orbit.service <<EOF
+[Unit]
+Description=Quasar Orbit - Server Monitoring Agent
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; sleep ${REQUEST_INTERVAL}; done'
+Restart=always
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+fi
 
 echo -e "${GREEN}✓ Service file created${NC}"
 
