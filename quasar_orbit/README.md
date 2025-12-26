@@ -11,6 +11,7 @@
 - **Hardware Auto-Detection**: Automatically detects CPU, RAM, and disk specs
 - **Fallback Support**: Manual hardware specs as CLI flags if auto-detection fails
 - **Multi-Disk Aware**: Aggregates metrics across all mounted disk partitions
+- **Random Interval Support**: Optional ±20% randomization of reporting intervals to avoid synchronized load spikes
 - **Minimal Dependencies**: Single binary with no external runtime dependencies
 
 ---
@@ -18,15 +19,18 @@
 ## 📊 Collected Metrics
 
 ### Tier 1 (Critical Liveness)
+
 - **Disk Usage**: Percentage of total disk space used (across all drives)
 - **Uptime**: Seconds since system boot (detect unexpected reboots)
 
 ### Tier 2 (Core System Health)
+
 - **CPU Usage**: Real-time CPU utilization percentage (1-second average)
 - **RAM Usage**: Memory utilization percentage
 - **Swap Usage**: Swap space used in bytes
 
 ### Static Hardware Info
+
 - Total CPU cores
 - Total RAM (bytes)
 - Total disk space (bytes)
@@ -53,9 +57,11 @@ sudo ./install.sh
 ```
 
 The installer will:
+
 - Auto-detect your system architecture (x86_64 or i386)
 - Download the appropriate binary from GitHub releases
 - Prompt for configuration (server name, endpoint, interval, etc.)
+- Ask if you want to use random intervals (±20% variation per pulse)
 - Create and start a systemd service
 - Configure automatic startup on boot
 
@@ -120,6 +126,7 @@ sudo ./uninstall.sh
 ```
 
 **Output:**
+
 ```
 === Quasar Orbit - Server Monitoring Agent ===
 
@@ -156,6 +163,7 @@ Swap Used: 128 MB (134217728 bytes)
 ```
 
 **With Authentication:**
+
 ```bash
 ./quasar-orbit \
   --name "ProductionServer" \
@@ -165,6 +173,7 @@ Swap Used: 128 MB (134217728 bytes)
 ```
 
 **Multiple Headers:**
+
 ```bash
 ./quasar-orbit \
   --name "ProductionServer" \
@@ -195,17 +204,33 @@ Use when auto-detection fails or you want to override values:
 
 ## 🔧 CLI Flags
 
-| Flag | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| `--name` | string | ✅ Yes | - | Server name (identifier) |
-| `--output` | string | ❌ No | `print` | Output type: `print` or `http` |
-| `--url` | string | ⚠️ Required if `--output=http` | - | HTTP endpoint URL |
-| `--header` | string | ❌ No | - | HTTP headers (`Key1:Value1,Key2:Value2`) |
-| `--cpu` | int | ❌ No | `1` | Total CPU cores (fallback) |
-| `--ram` | int64 | ❌ No | Auto-detect | Total RAM in bytes (fallback) |
-| `--ramsticks` | int | ❌ No | `1` | Number of physical RAM sticks |
-| `--disk` | int64 | ❌ No | Auto-detect | Total disk space in bytes (fallback) |
-| `--drives` | int | ❌ No | `1` | Number of disk drives |
+| Flag                                         | Type   | Required                                    | Default     | Description                                                   |
+| -------------------------------------------- | ------ | ------------------------------------------- | ----------- | ------------------------------------------------------------- |
+| `--name`                                     | string | ✅ Yes                                      | -           | Server name (identifier)                                      |
+| `--output`                                   | string | ❌ No                                       | `print`     | Output type: `print` or `http`                                |
+| `--url1` to `--url5`                         | string | ⚠️ At least one required if `--output=http` | -           | HTTP endpoint URLs (up to 5)                                  |
+| `--header1` to `--header5`                   | string | ❌ No                                       | -           | HTTP headers for each URL (`Key1:Value1,Key2:Value2`)         |
+| `--random-interval1` to `--random-interval5` | bool   | ❌ No                                       | `false`     | Enable ±20% random interval for each endpoint                 |
+| `--calc-sleep`                               | int    | ❌ No                                       | `0`         | Calculate random sleep interval for given base (utility mode) |
+| `--cpu`                                      | int    | ❌ No                                       | `1`         | Total CPU cores (fallback)                                    |
+| `--ram`                                      | int64  | ❌ No                                       | Auto-detect | Total RAM in bytes (fallback)                                 |
+| `--ramsticks`                                | int    | ❌ No                                       | `1`         | Number of physical RAM sticks                                 |
+| `--disk`                                     | int64  | ❌ No                                       | Auto-detect | Total disk space in bytes (fallback)                          |
+| `--drives`                                   | int    | ❌ No                                       | `1`         | Number of disk drives                                         |
+
+### Legacy Flags (Deprecated)
+
+| Flag                | Type   | Description                      |
+| ------------------- | ------ | -------------------------------- |
+| `--url`             | string | Use `--url1` instead             |
+| `--header`          | string | Use `--header1` instead          |
+| `--random-interval` | bool   | Use `--random-interval1` instead |
+
+---
+
+## 🎲 Random Interval Feature
+
+The random interval feature helps prevent service ban due to pattern request, exist for a long time.
 
 ---
 
@@ -240,8 +265,9 @@ When using `--output http`, the agent sends this JSON structure:
 ### Automated Setup
 
 The easiest way is to use the [installation script](#automated-installation-linux) which automatically:
+
 - Creates a systemd service
-- Configures the reporting interval
+- Configures the reporting interval (with optional random variation)
 - Enables auto-start on boot
 
 ### Manual Systemd Service Setup
@@ -265,6 +291,7 @@ WantedBy=multi-user.target
 ```
 
 **Enable and start:**
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable quasar-orbit.service
@@ -340,25 +367,32 @@ go build -ldflags="-s -w" -o quasar-orbit
 ## 🐛 Troubleshooting
 
 ### "Failed to detect RAM and no --ram flag provided"
+
 **Cause:** gopsutil failed to read memory info.
 **Fix:** Provide `--ram` flag with total RAM in bytes:
+
 ```bash
 ./quasar-orbit --name "Server" --ram 17179869184
 ```
 
 ### "Failed to detect disk space and no --disk flag provided"
+
 **Cause:** No accessible disk partitions found.
 **Fix:** Provide `--disk` flag with total disk space in bytes:
+
 ```bash
 ./quasar-orbit --name "Server" --disk 536870912000
 ```
 
 ### CPU shows 0.00% on Windows
+
 **Note:** This is expected in development. The agent uses CPU percentage (not load average) which works correctly on both Windows and Linux. If you see 0% consistently on Linux, there may be an issue with CPU measurement timing.
 
 ### HTTP request fails with "connection refused"
+
 **Cause:** Server not reachable or URL incorrect.
 **Fix:**
+
 1. Verify URL is correct
 2. Test with `curl -X POST <url>`
 3. Check network/firewall settings

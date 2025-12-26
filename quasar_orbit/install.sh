@@ -148,6 +148,15 @@ if ! [[ "$REQUEST_INTERVAL" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+# Ask about random interval
+echo ""
+read -p "$(echo -e ${YELLOW}'Do you want to use random interval (±20% variation per pulse)? [y/N]: '${NC})" USE_RANDOM_INTERVAL
+if [[ "$USE_RANDOM_INTERVAL" =~ ^[Yy]$ ]]; then
+    USE_RANDOM_INTERVAL="yes"
+else
+    USE_RANDOM_INTERVAL="no"
+fi
+
 echo ""
 echo -e "${CYAN}=== Optional Parameters ===${NC}"
 echo -e "${YELLOW}Press Enter to skip optional fields${NC}"
@@ -163,6 +172,7 @@ echo -e "${CYAN}=== Installation Configuration ===${NC}"
 echo "Server Name: $SERVER_NAME"
 echo "Endpoint URL: $ENDPOINT_URL"
 echo "Request Interval: ${REQUEST_INTERVAL}s"
+echo "Random Interval: $USE_RANDOM_INTERVAL"
 [ -n "$HTTP_HEADERS" ] && echo "HTTP Headers: $HTTP_HEADERS"
 [ -n "$TOTAL_CPU" ] && echo "Total CPU: $TOTAL_CPU"
 [ -n "$TOTAL_RAM" ] && echo "Total RAM: $TOTAL_RAM bytes"
@@ -189,6 +199,7 @@ echo -e "${GREEN}✓ Binary installed${NC}"
 # Build command arguments
 CMD_ARGS="--name '$SERVER_NAME' --output http --url1 '$ENDPOINT_URL'"
 [ -n "$HTTP_HEADERS" ] && CMD_ARGS="$CMD_ARGS --header1 '$HTTP_HEADERS'"
+[ "$USE_RANDOM_INTERVAL" = "yes" ] && CMD_ARGS="$CMD_ARGS --random-interval1"
 [ -n "$TOTAL_CPU" ] && CMD_ARGS="$CMD_ARGS --cpu $TOTAL_CPU"
 [ -n "$TOTAL_RAM" ] && CMD_ARGS="$CMD_ARGS --ram $TOTAL_RAM"
 [ -n "$RAM_STICKS" ] && CMD_ARGS="$CMD_ARGS --ramsticks $RAM_STICKS"
@@ -200,6 +211,13 @@ echo "Creating systemd service..."
 echo "Command: /usr/local/bin/quasar_orbit ${CMD_ARGS}"
 echo ""
 
+# Generate appropriate ExecStart command based on random interval setting
+if [ "$USE_RANDOM_INTERVAL" = "yes" ]; then
+    EXEC_START_CMD='while true; do /usr/local/bin/quasar_orbit '"${CMD_ARGS}"'; SLEEP_INTERVAL=$(/usr/local/bin/quasar_orbit --calc-sleep '"${REQUEST_INTERVAL}"'); sleep $SLEEP_INTERVAL; done'
+else
+    EXEC_START_CMD='while true; do /usr/local/bin/quasar_orbit '"${CMD_ARGS}"'; sleep '"${REQUEST_INTERVAL}"'; done'
+fi
+
 cat > /etc/systemd/system/quasar-orbit.service <<EOF
 [Unit]
 Description=Quasar Orbit - Server Monitoring Agent
@@ -207,7 +225,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'while true; do /usr/local/bin/quasar_orbit ${CMD_ARGS}; sleep ${REQUEST_INTERVAL}; done'
+ExecStart=/bin/bash -c '${EXEC_START_CMD}'
 Restart=always
 RestartSec=10
 User=root
