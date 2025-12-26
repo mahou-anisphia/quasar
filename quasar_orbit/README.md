@@ -204,25 +204,25 @@ Use when auto-detection fails or you want to override values:
 
 ## 🔧 CLI Flags
 
-| Flag                 | Type   | Required                                    | Default     | Description                                                   |
-| -------------------- | ------ | ------------------------------------------- | ----------- | ------------------------------------------------------------- |
-| `--name`             | string | ✅ Yes                                      | -           | Server name (identifier)                                      |
-| `--output`           | string | ❌ No                                       | `print`     | Output type: `print` or `http`                                |
-| `--url1` to `--url5` | string | ⚠️ At least one required if `--output=http` | -           | HTTP endpoint URLs (up to 5)                                  |
-| `--header1` to `--header5` | string | ❌ No                                 | -           | HTTP headers for each URL (`Key1:Value1,Key2:Value2`)         |
-| `--calc-sleep`       | int    | ❌ No                                       | `0`         | Calculate random sleep interval for given base (utility mode) |
-| `--cpu`              | int    | ❌ No                                       | `1`         | Total CPU cores (fallback)                                    |
-| `--ram`              | int64  | ❌ No                                       | Auto-detect | Total RAM in bytes (fallback)                                 |
-| `--ramsticks`        | int    | ❌ No                                       | `1`         | Number of physical RAM sticks                                 |
-| `--disk`             | int64  | ❌ No                                       | Auto-detect | Total disk space in bytes (fallback)                          |
-| `--drives`           | int    | ❌ No                                       | `1`         | Number of disk drives                                         |
+| Flag                       | Type   | Required                                    | Default     | Description                                                   |
+| -------------------------- | ------ | ------------------------------------------- | ----------- | ------------------------------------------------------------- |
+| `--name`                   | string | ✅ Yes                                      | -           | Server name (identifier)                                      |
+| `--output`                 | string | ❌ No                                       | `print`     | Output type: `print` or `http`                                |
+| `--url1` to `--url5`       | string | ⚠️ At least one required if `--output=http` | -           | HTTP endpoint URLs (up to 5)                                  |
+| `--header1` to `--header5` | string | ❌ No                                       | -           | HTTP headers for each URL (`Key1:Value1,Key2:Value2`)         |
+| `--calc-sleep`             | int    | ❌ No                                       | `0`         | Calculate random sleep interval for given base (utility mode) |
+| `--cpu`                    | int    | ❌ No                                       | `1`         | Total CPU cores (fallback)                                    |
+| `--ram`                    | int64  | ❌ No                                       | Auto-detect | Total RAM in bytes (fallback)                                 |
+| `--ramsticks`              | int    | ❌ No                                       | `1`         | Number of physical RAM sticks                                 |
+| `--disk`                   | int64  | ❌ No                                       | Auto-detect | Total disk space in bytes (fallback)                          |
+| `--drives`                 | int    | ❌ No                                       | `1`         | Number of disk drives                                         |
 
 ### Legacy Flags (Deprecated)
 
-| Flag       | Type   | Description              |
-| ---------- | ------ | ------------------------ |
-| `--url`    | string | Use `--url1` instead     |
-| `--header` | string | Use `--header1` instead  |
+| Flag       | Type   | Description             |
+| ---------- | ------ | ----------------------- |
+| `--url`    | string | Use `--url1` instead    |
+| `--header` | string | Use `--header1` instead |
 
 ---
 
@@ -320,18 +320,6 @@ sudo journalctl -u quasar-orbit.service -f
 
 ---
 
-## 🏗️ Project Structure
-
-```
-quasar_orbit/
-├── main.go          # CLI parsing, output handling, HTTP requests
-├── collector.go     # Metrics collection using gopsutil
-├── go.mod           # Go module dependencies
-└── go.sum           # Dependency checksums
-```
-
----
-
 ## 🛠️ Development
 
 ### Run Locally
@@ -359,41 +347,6 @@ GOOS=linux GOARCH=amd64 go build -o quasar-orbit-linux
 # Build with optimizations (smaller binary)
 go build -ldflags="-s -w" -o quasar-orbit
 ```
-
----
-
-## 🐛 Troubleshooting
-
-### "Failed to detect RAM and no --ram flag provided"
-
-**Cause:** gopsutil failed to read memory info.
-**Fix:** Provide `--ram` flag with total RAM in bytes:
-
-```bash
-./quasar-orbit --name "Server" --ram 17179869184
-```
-
-### "Failed to detect disk space and no --disk flag provided"
-
-**Cause:** No accessible disk partitions found.
-**Fix:** Provide `--disk` flag with total disk space in bytes:
-
-```bash
-./quasar-orbit --name "Server" --disk 536870912000
-```
-
-### CPU shows 0.00% on Windows
-
-**Note:** This is expected in development. The agent uses CPU percentage (not load average) which works correctly on both Windows and Linux. If you see 0% consistently on Linux, there may be an issue with CPU measurement timing.
-
-### HTTP request fails with "connection refused"
-
-**Cause:** Server not reachable or URL incorrect.
-**Fix:**
-
-1. Verify URL is correct
-2. Test with `curl -X POST <url>`
-3. Check network/firewall settings
 
 ---
 

@@ -79,6 +79,7 @@ sudo ./install.sh
 ```
 
 The installer will:
+
 - Auto-detect your architecture (x86_64 or i386)
 - Download the appropriate binary from GitHub releases
 - Configure systemd service with your settings
@@ -186,3 +187,5 @@ I first built this in 2 hours back in 2024 when I got my first server but couldn
 1 year later, after time in management, I realized I'd lost touch with this kind of hands-on problem-solving. Quasar is my return to first-principles engineering: taking something I once hacked together and rebuilding it with proper architecture, clear concepts, and production quality.
 
 The irony: the "ivory tower" made me rusty at the very skills that got me there.
+
+_Quasar project is under MIT License_
