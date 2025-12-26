@@ -1,122 +1,17 @@
 # Quasar Lens 🔭
 
-**Quasar Lens** is the dashboard component of Quasar - a Next.js application deployed on Vercel that receives, stores, and visualizes telemetry data from Quasar Orbit agents.
+**Quasar Lens** is a reference implementation dashboard for receiving and visualizing telemetry from Quasar Orbit agents.
+
+> **Note:** Quasar Orbit is designed to be **loosely coupled** - you can use any service, dashboard, or backend to receive the telemetry data. Quasar Lens is just one example implementation using Next.js and Vercel.
 
 ---
 
-## 🏗️ Architecture
+## 📡 Telemetry Format
 
-```
-quasar_lens/
-├── app/                    # Next.js App Router
-│   ├── api/
-│   │   └── telemetry/      # POST endpoint for receiving metrics
-│   ├── page.tsx            # Dashboard UI
-│   └── layout.tsx
-│
-├── prisma/
-│   └── schema.prisma       # Database schema (Server + Telemetry models)
-│
-├── generated/
-│   └── prisma/             # Generated Prisma Client
-│
-└── package.json
-```
+Quasar Orbit agents send telemetry data as JSON via HTTP POST. You can integrate this with **any backend, service, or dashboard** of your choice.
 
----
+### JSON Payload Structure
 
-## 📊 Database Schema
-
-### Server Model
-Stores static hardware configuration for each monitored server:
-
-```prisma
-model Server {
-  serverId            String      @id @default(uuid())
-  name                String
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-
-  // Static hardware specs
-  totalCPU            Int
-  totalRam            BigInt
-  totalPhysicalRamBar Int
-  totalDiskSpace      BigInt
-  totalDiskDrive      Int
-
-  telemetry           Telemetry[]
-}
-```
-
-### Telemetry Model
-Stores time-series metrics data:
-
-```prisma
-model Telemetry {
-  telemetryId         Int      @id @default(autoincrement())
-  serverId            String
-  server              Server   @relation(...)
-  createdAt           DateTime @default(now())
-
-  // Tier 1 Metrics
-  diskUsagePercentage Float
-  attemptNo           Int
-  uptime              BigInt
-
-  // Tier 2 Metrics
-  cpuUsagePercentage  Float
-  ramUsagePercentage  Float
-  swapUsedBytes       BigInt
-}
-```
-
----
-
-## 🚀 Setup
-
-### Prerequisites
-- Node.js 18+ & pnpm
-- PostgreSQL database (Vercel Postgres recommended)
-
-### Installation
-
-```bash
-cd quasar_lens
-
-# Install dependencies
-pnpm install
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env and add your DATABASE_URL
-
-# Initialize database
-pnpm prisma migrate dev
-
-# Generate Prisma Client
-pnpm prisma generate
-
-# Run development server
-pnpm dev
-```
-
-Visit `http://localhost:3000`
-
----
-
-## 🔌 API Endpoint
-
-### POST /api/telemetry
-
-Receives telemetry data from Quasar Orbit agents.
-
-**Request Headers:**
-```
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN (optional)
-```
-
-**Request Body:**
 ```json
 {
   "server": {
@@ -137,31 +32,106 @@ Authorization: Bearer YOUR_TOKEN (optional)
 }
 ```
 
-**Response (Success):**
-```json
-{
-  "success": true,
-  "serverId": "uuid-here",
-  "telemetryId": 123
-}
-```
+### Field Descriptions
+
+**Server (Static Hardware Info):**
+- `serverName` (string): Server identifier
+- `totalCpu` (int): Number of CPU cores
+- `totalRam` (int64): Total RAM in bytes
+- `totalPhysicalRamBar` (int): Number of physical RAM sticks
+- `totalDiskSpace` (int64): Total disk space in bytes
+- `totalDiskDrive` (int): Number of disk drives
+
+**Telemetry (Time-Series Metrics):**
+
+*Tier 1 Metrics (Critical):*
+- `diskUsagePercentage` (float): Disk space usage percentage
+- `uptime` (int64): System uptime in seconds
+
+*Tier 2 Metrics (System Health):*
+- `cpuUsagePercentage` (float): CPU utilization percentage
+- `ramUsagePercentage` (float): Memory usage percentage
+- `swapUsedBytes` (int64): Swap space used in bytes
 
 ---
 
-## 🎨 Features
+## 🏗️ Reference Implementation (Quasar Lens)
 
-### Current (MVP)
+This repository includes a Next.js dashboard as a reference implementation, but you're free to use any technology stack.
+
+### Prerequisites
+- Node.js 18+ & pnpm
+- PostgreSQL database (or any data store you prefer)
+
+### Installation
+
+```bash
+cd quasar_lens
+
+# Install dependencies
+pnpm install
+
+# Setup environment variables
+cp .env.example .env
+# Edit .env and add your DATABASE_URL
+
+# Initialize database (if using Prisma)
+pnpm prisma migrate dev
+pnpm prisma generate
+
+# Run development server
+pnpm dev
+```
+
+Visit `http://localhost:3000`
+
+---
+
+## 🔌 Integration Options
+
+Since Quasar Orbit sends standard JSON over HTTP POST, you can integrate with various services:
+
+### Option 1: Custom Backend
+Build your own API endpoint in any language/framework:
+- Node.js/Express
+- Python/Flask/FastAPI
+- Go/Gin
+- Ruby/Rails
+- PHP/Laravel
+
+### Option 2: Serverless Functions
+- Vercel Functions (Next.js API Routes)
+- AWS Lambda + API Gateway
+- Cloudflare Workers
+- Google Cloud Functions
+
+### Option 3: Data Collection Services
+- Webhook.site (testing)
+- Zapier/Make.com (automation)
+- InfluxDB (time-series database)
+- Prometheus Pushgateway
+- Elasticsearch
+
+### Option 4: Use Quasar Lens (This Repo)
+The included Next.js dashboard provides a ready-to-deploy solution with PostgreSQL storage.
+
+---
+
+## 🎨 Features (Reference Implementation)
+
+### Current
 - ✅ REST API endpoint for telemetry ingestion
 - ✅ PostgreSQL storage via Prisma
 - ✅ Server registration and hardware tracking
 - ✅ Time-series telemetry storage
+- ✅ Basic dashboard UI with server list
 
-### Planned (Phase 2)
-- 📊 Real-time dashboard UI
-- 📈 Historical metrics visualization
-- 🚨 Alert system (server down detection)
-- 📱 Mobile-responsive design
-- 🔐 Authentication & multi-user support
+### Planned
+- 📊 Enhanced real-time dashboard
+- 📈 Historical metrics visualization with charts
+- 🚨 Alert system (server down detection, threshold alerts)
+- 📱 Mobile-responsive design improvements
+- 🔐 Multi-user authentication & authorization
 
 ---
 
@@ -187,9 +157,22 @@ vercel
 
 ---
 
-## 🛠️ Development
+## 🛠️ Development (Quasar Lens Specific)
 
-### Database Migrations
+If you're using the Quasar Lens reference implementation:
+
+### Environment Variables
+
+```env
+# Required
+DATABASE_URL="postgresql://user:password@host:5432/dbname"
+
+# Optional
+AUTH_TOKEN="your-secret-token"  # For API authentication
+NODE_ENV="development"           # or "production"
+```
+
+### Database Migrations (Prisma)
 
 ```bash
 # Create new migration
@@ -200,25 +183,9 @@ pnpm prisma migrate deploy
 
 # Reset database (dev only)
 pnpm prisma migrate reset
-```
 
-### Prisma Studio (Database GUI)
-
-```bash
+# Open Prisma Studio (Database GUI)
 pnpm prisma studio
-```
-
----
-
-## 📝 Environment Variables
-
-```env
-# Required
-DATABASE_URL="postgresql://user:password@host:5432/dbname"
-
-# Optional
-AUTH_TOKEN="your-secret-token"  # For API authentication
-NODE_ENV="development"           # or "production"
 ```
 
 ---
