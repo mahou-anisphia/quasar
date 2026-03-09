@@ -33,10 +33,10 @@ export function LandingPage() {
     // OS detection for font rendering
     const ua = navigator.userAgent;
     const pl = (navigator as { platform?: string }).platform ?? "";
-    const isWindows = /Win/.test(pl) || /Windows/.test(ua);
-    const isMac = /Mac/.test(pl) && !/iPhone|iPad/.test(ua);
-    const isIOS = /iPhone|iPad|iPod/.test(ua);
-    const isAndroid = /Android/.test(ua);
+    const isWindows = pl.includes("Win") || ua.includes("Windows");
+    const isMac = pl.includes("Mac") && !ua.includes("iPhone") && !ua.includes("iPad");
+    const isIOS = ua.includes("iPhone") || ua.includes("iPad") || ua.includes("iPod");
+    const isAndroid = ua.includes("Android");
     const os = isWindows
       ? "windows"
       : isMac
