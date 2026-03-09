@@ -19,32 +19,59 @@ type CrashesTableProps = {
 
 export function CrashesTable({ crashes }: CrashesTableProps) {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border" style={{ borderColor: "rgba(192,38,211,0.15)" }}>
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">
-              <AlertTriangle className="h-4 w-4" />
+          <TableRow style={{ borderColor: "rgba(192,38,211,0.12)" }}>
+            <TableHead className="w-15" />
+            <TableHead>
+              <span className="font-caveat" style={{ color: "rgba(74,26,46,0.45)", fontSize: "0.88rem" }}>
+                when it died
+              </span>
             </TableHead>
-            <TableHead>Crash Time</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead className="text-right">Crash ID</TableHead>
+            <TableHead>
+              <span className="font-caveat" style={{ color: "rgba(74,26,46,0.45)", fontSize: "0.88rem" }}>
+                how long
+              </span>
+            </TableHead>
+            <TableHead className="text-right">
+              <span className="font-caveat" style={{ color: "rgba(74,26,46,0.45)", fontSize: "0.88rem" }}>
+                crash id
+              </span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {crashes.map((crash) => (
-            <TableRow key={crash.crashId}>
+            <TableRow key={crash.crashId} style={{ borderColor: "rgba(192,38,211,0.08)" }}>
               <TableCell>
-                <div className="bg-destructive/10 flex h-8 w-8 items-center justify-center rounded-full">
-                  <AlertTriangle className="text-destructive h-4 w-4" />
+                <div
+                  className="flex h-8 w-8 items-center justify-center rounded-full"
+                  style={{ background: "rgba(255,77,109,0.08)" }}
+                >
+                  <AlertTriangle className="h-4 w-4" style={{ color: "var(--q-hot)" }} />
                 </div>
               </TableCell>
-              <TableCell className="font-medium">
-                {format(new Date(crash.crashTime), "PPpp")}
+              <TableCell>
+                <span className="font-jost text-sm" style={{ color: "var(--q-mid)" }}>
+                  {format(new Date(crash.crashTime), "PPpp")}
+                </span>
               </TableCell>
-              <TableCell>{formatDuration(crash.duration)}</TableCell>
-              <TableCell className="text-muted-foreground text-right font-mono text-xs">
-                {crash.crashId.slice(0, 8)}...
+              <TableCell>
+                <span
+                  className="font-caveat"
+                  style={{ color: "var(--q-hot)", fontSize: "1rem", fontWeight: 600 }}
+                >
+                  {formatDuration(crash.duration)}
+                </span>
+              </TableCell>
+              <TableCell className="text-right">
+                <span
+                  className="font-mono text-xs"
+                  style={{ color: "var(--q-purple)", opacity: 0.6 }}
+                >
+                  {crash.crashId.slice(0, 8)}…
+                </span>
               </TableCell>
             </TableRow>
           ))}
